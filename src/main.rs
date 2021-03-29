@@ -150,10 +150,8 @@ async fn main() {
   while children.len() < 100 {
     let pid = unsafe { fork() };
     if pid == 0 {
-      let _waste = vec![1u8; 100 * (1 << 20)];
-      let _exit_time = Instant::now() + Duration::from_secs(10);
-
-      #[allow(clippy::clippy::empty_loop)]
+      let _waste = vec![1u8; 100 * (1 << 20)]; // Waste 100mb.
+      #[allow(clippy::empty_loop)]
       loop {} // Hang.
     }
 
