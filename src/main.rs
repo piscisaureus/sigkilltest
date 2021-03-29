@@ -4,7 +4,11 @@ use libc::close;
 use libc::fork;
 use libc::pid_t;
 use libc::siginfo_t;
+use libc::signal;
 use libc::ESRCH;
+use libc::SIGCHLD;
+use libc::SIG_ERR;
+use libc::SIG_IGN;
 use std::collections::VecDeque;
 use std::io;
 use std::io::ErrorKind;
@@ -13,7 +17,6 @@ use std::os::unix::io::RawFd;
 use std::ptr::null_mut;
 use std::thread::sleep;
 use std::time::Duration;
-use std::time::Instant;
 use tokio::io::unix::AsyncFd;
 use tokio::io::Interest;
 
@@ -145,6 +148,10 @@ fn get_mem_avail() -> io::Result<usize> {
 
 #[tokio::main]
 async fn main() {
+  // Stop terminating child processes from turning into zombies.
+  let r = unsafe { signal(SIGCHLD, SIG_IGN) };
+  assert_ne!(r, SIG_ERR);
+
   let mut children = VecDeque::<PidFd>::new();
 
   while children.len() < 100 {
